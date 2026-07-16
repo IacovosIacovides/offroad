@@ -1,1267 +1,645 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
-    />
-    <title>Xoma — Cyprus Off-Road Trail Finder</title>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --bg: #171f1a;
-        --panel: #202b23;
-        --panel-2: #263329;
-        --line: #37453a;
-        --copper: #c97a4a;
-        --copper-dim: #8f5636;
-        --moss: #8a9a5b;
-        --stone: #edeae0;
-        --stone-dim: #9bb0a1;
-        --ochre: #d0a23a;
-        --rust: #b5502f;
-        --danger: #8b3a3a;
-        --grey: #6b7280;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background: var(--bg);
-        color: var(--stone);
-        font-family: "IBM Plex Sans", sans-serif;
-        overflow: hidden;
-      }
-      ::selection {
-        background: var(--copper);
-        color: #171f1a;
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Xoma — Cyprus Off-Road Trail Finder</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #171f1a;
+    --panel: #202b23;
+    --panel-2: #263329;
+    --line: #37453a;
+    --copper: #c97a4a;
+    --copper-dim: #8f5636;
+    --moss: #8a9a5b;
+    --stone: #edeae0;
+    --stone-dim: #9bb0a1;
+    --ochre: #d0a23a;
+    --rust: #b5502f;
+    --danger: #8b3a3a;
+    --grey: #6b7280;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--stone);font-family:'IBM Plex Sans',sans-serif;overflow:hidden;}
+  ::selection{background:var(--copper);color:#171f1a;}
 
-      /* ---- header ---- */
-      #app {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-      }
-      header {
-        position: relative;
-        flex: 0 0 auto;
-        padding: 14px 14px 12px;
-        background: linear-gradient(180deg, #1c2620, #171f1a 90%);
-        border-bottom: 1px solid var(--line);
-        z-index: 20;
-        background-image:
-          repeating-linear-gradient(
-            0deg,
-            transparent 0 26px,
-            rgba(138, 154, 91, 0.06) 26px 27px
-          ),
-          linear-gradient(180deg, #1c2620, #171f1a 90%);
-      }
-      .brand {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-        margin-bottom: 10px;
-      }
-      .brand .mark {
-        font-family: "Oswald", sans-serif;
-        font-weight: 700;
-        font-size: 20px;
-        letter-spacing: 0.5px;
-        color: var(--copper);
-      }
-      .brand .sub {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10.5px;
-        color: var(--stone-dim);
-        letter-spacing: 0.4px;
-        text-transform: uppercase;
-      }
-      .searchrow {
-        display: flex;
-        gap: 8px;
-      }
-      .searchinput {
-        flex: 1;
-        background: var(--panel-2);
-        border: 1px solid var(--line);
-        color: var(--stone);
-        padding: 11px 12px;
-        border-radius: 8px;
-        font-size: 15px;
-        font-family: "IBM Plex Sans", sans-serif;
-      }
-      .searchinput::placeholder {
-        color: var(--stone-dim);
-      }
-      #go {
-        background: var(--copper);
-        border: none;
-        color: #171f1a;
-        font-weight: 600;
-        padding: 0 18px;
-        border-radius: 8px;
-        font-family: "Oswald", sans-serif;
-        letter-spacing: 0.4px;
-        font-size: 14px;
-      }
-      #go:active {
-        background: var(--copper-dim);
-      }
-      #status {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 11px;
-        color: var(--stone-dim);
-        margin-top: 8px;
-        min-height: 14px;
-      }
+  /* ---- header ---- */
+  #app{position:fixed;inset:0;display:flex;flex-direction:column;}
+  header{
+    position:relative;flex:0 0 auto;padding:14px 14px 12px;
+    background:linear-gradient(180deg,#1c2620,#171f1a 90%);
+    border-bottom:1px solid var(--line);z-index:20;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 26px, rgba(138,154,91,0.06) 26px 27px),
+      linear-gradient(180deg,#1c2620,#171f1a 90%);
+  }
+  .brand{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;}
+  .brand .mark{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;letter-spacing:0.5px;color:var(--copper);}
+  .brand .sub{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--stone-dim);letter-spacing:0.4px;text-transform:uppercase;}
+  .searchrow{display:flex;gap:8px;}
+  .searchinput{
+    flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--stone);
+    padding:11px 12px;border-radius:8px;font-size:15px;font-family:'IBM Plex Sans',sans-serif;
+  }
+  .searchinput::placeholder{color:var(--stone-dim);}
+  #go{
+    background:var(--copper);border:none;color:#171f1a;font-weight:600;padding:0 18px;
+    border-radius:8px;font-family:'Oswald',sans-serif;letter-spacing:0.4px;font-size:14px;
+  }
+  #go:active{background:var(--copper-dim);}
+  #status{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--stone-dim);margin-top:8px;min-height:14px;}
 
-      /* ---- map ---- */
-      #map {
-        flex: 1 1 auto;
-        position: relative;
-        background: #0d130f;
-      }
-      .leaflet-container {
-        background: #0d130f;
-      }
+  /* ---- map ---- */
+  #map{flex:1 1 auto;position:relative;background:#0d130f;}
+  .leaflet-container{background:#0d130f;}
 
-      /* ---- bottom sheet ---- */
-      #sheet {
-        flex: 0 0 auto;
-        background: var(--panel);
-        border-top: 1px solid var(--line);
-        max-height: 46vh;
-        display: flex;
-        flex-direction: column;
-        z-index: 20;
-      }
-      .tabs {
-        display: flex;
-        border-bottom: 1px solid var(--line);
-        flex: 0 0 auto;
-      }
-      .tab {
-        flex: 1;
-        text-align: center;
-        padding: 11px 4px;
-        font-family: "Oswald", sans-serif;
-        font-size: 12.5px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        color: var(--stone-dim);
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        background: none;
-        border-left: none;
-        border-right: none;
-        border-top: none;
-      }
-      .tab.active {
-        color: var(--copper);
-        border-bottom-color: var(--copper);
-      }
-      .panels {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      .panel {
-        display: none;
-        padding: 12px 14px 20px;
-      }
-      .panel.active {
-        display: block;
-      }
+  /* ---- bottom sheet ---- */
+  #sheet{
+    flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);
+    max-height:46vh;display:flex;flex-direction:column;z-index:20;
+  }
+  .tabs{display:flex;border-bottom:1px solid var(--line);flex:0 0 auto;}
+  .tab{
+    flex:1;text-align:center;padding:11px 4px;font-family:'Oswald',sans-serif;font-size:12.5px;
+    letter-spacing:0.5px;text-transform:uppercase;color:var(--stone-dim);cursor:pointer;
+    border-bottom:2px solid transparent;background:none;border-left:none;border-right:none;border-top:none;
+  }
+  .tab.active{color:var(--copper);border-bottom-color:var(--copper);}
+  .panels{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .panel{display:none;padding:12px 14px 20px;}
+  .panel.active{display:block;}
 
-      .empty {
-        color: var(--stone-dim);
-        font-size: 13px;
-        padding: 20px 4px;
-        text-align: center;
-        line-height: 1.5;
-      }
+  .empty{color:var(--stone-dim);font-size:13px;padding:20px 4px;text-align:center;line-height:1.5;}
 
-      .trail-card {
-        background: var(--panel-2);
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 9px;
-        cursor: pointer;
-      }
-      .trail-card:active {
-        border-color: var(--copper-dim);
-      }
-      .trail-card.selected {
-        border-color: var(--copper);
-        box-shadow: 0 0 0 1px var(--copper) inset;
-      }
-      .tc-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 8px;
-      }
-      .tc-name {
-        font-family: "Oswald", sans-serif;
-        font-size: 14.5px;
-        font-weight: 500;
-        color: var(--stone);
-      }
-      .tc-dist {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10.5px;
-        color: var(--stone-dim);
-        white-space: nowrap;
-      }
-      .badge {
-        display: inline-block;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.3px;
-        padding: 2px 7px;
-        border-radius: 20px;
-        margin-top: 6px;
-        text-transform: uppercase;
-      }
-      .b-easy {
-        background: rgba(138, 154, 91, 0.18);
-        color: var(--moss);
-      }
-      .b-moderate {
-        background: rgba(208, 162, 58, 0.18);
-        color: var(--ochre);
-      }
-      .b-difficult {
-        background: rgba(181, 80, 47, 0.18);
-        color: var(--rust);
-      }
-      .b-restricted {
-        background: rgba(139, 58, 58, 0.25);
-        color: #e08585;
-      }
-      .b-unrated {
-        background: rgba(107, 114, 128, 0.2);
-        color: #b0b6bd;
-      }
-      .tc-note {
-        font-size: 12px;
-        color: var(--stone-dim);
-        margin-top: 6px;
-        line-height: 1.4;
-      }
+  .trail-card{
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;margin-bottom:9px;cursor:pointer;
+  }
+  .trail-card:active{border-color:var(--copper-dim);}
+  .trail-card.selected{border-color:var(--copper);box-shadow:0 0 0 1px var(--copper) inset;}
+  .tc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .tc-name{font-family:'Oswald',sans-serif;font-size:14.5px;font-weight:500;color:var(--stone);}
+  .tc-dist{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--stone-dim);white-space:nowrap;}
+  .badge{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.3px;
+    padding:2px 7px;border-radius:20px;margin-top:6px;text-transform:uppercase;
+  }
+  .b-easy{background:rgba(138,154,91,0.18);color:var(--moss);}
+  .b-moderate{background:rgba(208,162,58,0.18);color:var(--ochre);}
+  .b-difficult{background:rgba(181,80,47,0.18);color:var(--rust);}
+  .b-restricted{background:rgba(139,58,58,0.25);color:#e08585;}
+  .b-unrated{background:rgba(107,114,128,0.2);color:#b0b6bd;}
+  .tc-note{font-size:12px;color:var(--stone-dim);margin-top:6px;line-height:1.4;}
 
-      .route-card {
-        background: var(--panel-2);
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 12px;
-        margin-bottom: 10px;
-      }
-      .route-card h3 {
-        margin: 0 0 3px;
-        font-family: "Oswald", sans-serif;
-        font-size: 15px;
-        color: var(--stone);
-        font-weight: 500;
-      }
-      .route-meta {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10.5px;
-        color: var(--copper);
-        margin-bottom: 6px;
-      }
-      .route-card p {
-        margin: 0 0 6px;
-        font-size: 12.5px;
-        color: var(--stone-dim);
-        line-height: 1.5;
-      }
-      .flag {
-        font-size: 11.5px;
-        padding: 6px 9px;
-        border-radius: 6px;
-        margin-top: 6px;
-        font-weight: 500;
-      }
-      .flag-closed {
-        background: rgba(139, 58, 58, 0.25);
-        color: #e08585;
-        border: 1px solid rgba(139, 58, 58, 0.5);
-      }
-      .flag-caution {
-        background: rgba(208, 162, 58, 0.15);
-        color: var(--ochre);
-        border: 1px solid rgba(208, 162, 58, 0.35);
-      }
+  .route-card{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;}
+  .route-card h3{margin:0 0 3px;font-family:'Oswald',sans-serif;font-size:15px;color:var(--stone);font-weight:500;}
+  .route-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--copper);margin-bottom:6px;}
+  .route-card p{margin:0 0 6px;font-size:12.5px;color:var(--stone-dim);line-height:1.5;}
+  .flag{font-size:11.5px;padding:6px 9px;border-radius:6px;margin-top:6px;font-weight:500;}
+  .flag-closed{background:rgba(139,58,58,0.25);color:#e08585;border:1px solid rgba(139,58,58,0.5);}
+  .flag-caution{background:rgba(208,162,58,0.15);color:var(--ochre);border:1px solid rgba(208,162,58,0.35);}
 
-      .infoblock {
-        margin-bottom: 16px;
-      }
-      .infoblock h3 {
-        font-family: "Oswald", sans-serif;
-        font-size: 14px;
-        color: var(--copper);
-        margin: 0 0 6px;
-        letter-spacing: 0.3px;
-      }
-      .infoblock p,
-      .infoblock li {
-        font-size: 12.8px;
-        color: var(--stone-dim);
-        line-height: 1.55;
-        margin: 0 0 6px;
-      }
-      .infoblock ul {
-        padding-left: 18px;
-        margin: 0 0 6px;
-      }
-      .specs {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 6px;
-      }
-      .specs td {
-        font-size: 12.5px;
-        padding: 5px 4px;
-        border-bottom: 1px solid var(--line);
-        color: var(--stone-dim);
-      }
-      .specs td:first-child {
-        color: var(--stone);
-        width: 52%;
-      }
-      .gauge-legend {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin: 8px 0 4px;
-      }
-      .gauge-legend span {
-        font-size: 10.5px;
-        font-family: "IBM Plex Mono", monospace;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: var(--stone-dim);
-      }
-      .dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        display: inline-block;
-      }
+  .infoblock{margin-bottom:16px;}
+  .infoblock h3{font-family:'Oswald',sans-serif;font-size:14px;color:var(--copper);margin:0 0 6px;letter-spacing:0.3px;}
+  .infoblock p, .infoblock li{font-size:12.8px;color:var(--stone-dim);line-height:1.55;margin:0 0 6px;}
+  .infoblock ul{padding-left:18px;margin:0 0 6px;}
+  .specs{width:100%;border-collapse:collapse;margin-bottom:6px;}
+  .specs td{font-size:12.5px;padding:5px 4px;border-bottom:1px solid var(--line);color:var(--stone-dim);}
+  .specs td:first-child{color:var(--stone);width:52%;}
+  .gauge-legend{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px;}
+  .gauge-legend span{font-size:10.5px;font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:5px;color:var(--stone-dim);}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
 
-      .search-actions {
-        display: flex;
-        gap: 8px;
-      }
-      .secondary-btn {
-        background: var(--panel-2);
-        border: 1px solid var(--copper-dim);
-        color: var(--copper);
-        font-weight: 600;
-        padding: 0 14px;
-        border-radius: 8px;
-        font-family: "Oswald", sans-serif;
-        letter-spacing: 0.3px;
-        font-size: 13px;
-        white-space: nowrap;
-      }
-      .secondary-btn:active {
-        background: var(--panel);
-      }
+  .search-actions{display:flex;gap:8px;}
+  .secondary-btn{background:var(--panel-2);border:1px solid var(--copper-dim);color:var(--copper);font-weight:600;padding:0 14px;border-radius:8px;font-family:'Oswald',sans-serif;letter-spacing:0.3px;font-size:13px;white-space:nowrap;}
+  .secondary-btn:active{background:var(--panel);}
 
-      .leaflet-popup-content-wrapper {
-        background: var(--panel-2);
-        color: var(--stone);
-        border-radius: 8px;
-      }
-      .leaflet-popup-tip {
-        background: var(--panel-2);
-      }
-      .popup-title {
-        font-family: "Oswald", sans-serif;
-        font-size: 14px;
-        margin: 0 0 4px;
-      }
-      .popup-note {
-        font-size: 12px;
-        color: var(--stone-dim);
-        line-height: 1.4;
-      }
-      a.maplink {
-        color: var(--copper);
-        font-size: 11.5px;
-      }
+  .leaflet-popup-content-wrapper{background:var(--panel-2);color:var(--stone);border-radius:8px;}
+  .leaflet-popup-tip{background:var(--panel-2);}
+  .popup-title{font-family:'Oswald',sans-serif;font-size:14px;margin:0 0 4px;}
+  .popup-note{font-size:12px;color:var(--stone-dim);line-height:1.4;}
+  a.maplink{color:var(--copper);font-size:11.5px;}
 
-      /* loading spinner dot */
-      .spin {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--copper);
-        animation: pulse 1s infinite ease-in-out;
-        margin-right: 6px;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 0.25;
-        }
-        50% {
-          opacity: 1;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app">
-      <header>
-        <div class="brand">
-          <span class="mark">XOMA</span
-          ><span class="sub">Cyprus off-road · Republic-controlled area</span>
-        </div>
-        <div class="searchrow" style="flex-direction: column; gap: 6px">
-          <div style="display: flex; gap: 8px">
-            <input
-              id="qTo"
-              class="searchinput"
-              type="text"
-              placeholder="Search a place — e.g. Fikardou village"
-              style="flex: 1"
-            />
-            <button id="go">SHOW TRAILS</button>
-          </div>
-          <div class="search-actions">
-            <button
-              id="nearMe"
-              class="secondary-btn"
-              style="flex: 1; padding: 10px 12px"
-            >
-              OFF-ROAD TRAILS NEAR ME
-            </button>
-          </div>
-        </div>
-        <div id="status"></div>
-        <div
-          id="secureNote"
-          style="
-            display: none;
-            font-size: 10.5px;
-            color: var(--ochre);
-            margin-top: 5px;
-            line-height: 1.35;
-          "
-        >
-          Near-me location needs this page to be opened from an HTTPS website,
-          not only from an iPhone Files preview.
-        </div>
-      </header>
-
-      <div id="map"></div>
-
-      <div id="sheet">
-        <div class="tabs">
-          <button class="tab active" data-tab="trails">Trails</button>
-          <button class="tab" data-tab="known">Known Routes</button>
-          <button class="tab" data-tab="legal">Legal</button>
-          <button class="tab" data-tab="vehicle">LC250</button>
-        </div>
-        <div class="panels">
-          <div class="panel active" id="panel-trails">
-            <div id="trailList">
-              <div class="empty">
-                Search a village or place to show mapped off-road tracks around
-                it, or tap “Off-road trails near me” to use your current
-                location.
-              </div>
-            </div>
-            <div
-              id="actionBar"
-              style="
-                display: none;
-                position: sticky;
-                bottom: -1px;
-                background: var(--panel);
-                padding: 10px 0 2px;
-                margin-top: 4px;
-                border-top: 1px solid var(--line);
-              "
-            >
-              <div
-                id="actionTitle"
-                style="
-                  font-family: &quot;Oswald&quot;, sans-serif;
-                  font-size: 13px;
-                  color: var(--stone);
-                  margin-bottom: 8px;
-                "
-              ></div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap">
-                <button
-                  id="navStart"
-                  style="
-                    flex: 1 1 30%;
-                    background: var(--panel-2);
-                    border: 1px solid var(--copper-dim);
-                    color: var(--copper);
-                    padding: 10px 6px;
-                    border-radius: 8px;
-                    font-family: &quot;Oswald&quot;, sans-serif;
-                    font-size: 12px;
-                    letter-spacing: 0.2px;
-                  "
-                >
-                  Navigate to start
-                </button>
-                <button
-                  id="navFollow"
-                  style="
-                    flex: 1 1 30%;
-                    background: var(--panel-2);
-                    border: 1px solid var(--copper-dim);
-                    color: var(--copper);
-                    padding: 10px 6px;
-                    border-radius: 8px;
-                    font-family: &quot;Oswald&quot;, sans-serif;
-                    font-size: 12px;
-                    letter-spacing: 0.2px;
-                  "
-                >
-                  Open in Maps
-                </button>
-                <button
-                  id="liveTrack"
-                  style="
-                    flex: 1 1 30%;
-                    background: var(--copper);
-                    border: none;
-                    color: #171f1a;
-                    font-weight: 600;
-                    padding: 10px 6px;
-                    border-radius: 8px;
-                    font-family: &quot;Oswald&quot;, sans-serif;
-                    font-size: 12px;
-                    letter-spacing: 0.2px;
-                  "
-                >
-                  Track live on map
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="panel" id="panel-known"></div>
-
-          <div class="panel" id="panel-legal"></div>
-
-          <div class="panel" id="panel-vehicle"></div>
-        </div>
+  /* loading spinner dot */
+  .spin{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--copper);
+    animation:pulse 1s infinite ease-in-out;margin-right:6px;}
+  @keyframes pulse{0%,100%{opacity:0.25;}50%{opacity:1;}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><span class="mark">XOMA</span><span class="sub">Cyprus off-road · Republic-controlled area</span></div>
+    <div class="searchrow" style="flex-direction:column;gap:6px;">
+      <div style="display:flex;gap:8px;">
+        <input id="qTo" class="searchinput" type="text" placeholder="Search a place — e.g. Fikardou village" style="flex:1;" />
+        <button id="go">SHOW TRAILS</button>
+      </div>
+      <div class="search-actions">
+        <button id="nearMe" class="secondary-btn" style="flex:1;padding:10px 12px;">OFF-ROAD TRAILS NEAR ME</button>
       </div>
     </div>
+    <div id="status"></div>
+    <div id="secureNote" style="display:none;font-size:10.5px;color:var(--ochre);margin-top:5px;line-height:1.35;">Near-me location needs this page to be opened from an HTTPS website, not only from an iPhone Files preview.</div>
+  </header>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script>
-      /* ===================== MAP SETUP ===================== */
-      const map = L.map("map", { zoomControl: false }).setView(
-        [34.92, 32.9],
-        9,
-      );
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-      // Satellite imagery has no stylised paved-road vector layer competing with our
-      // track overlay — this is the closest free option to "only show the off-road tracks".
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        {
-          maxZoom: 19,
-          attribution: "Esri, Maxar, Earthstar Geographics",
-        },
-      ).addTo(map);
-      document.querySelector(".leaflet-tile-pane").style.filter =
-        "brightness(0.72) saturate(0.85)";
+  <div id="map"></div>
 
-      let trackLayer = L.layerGroup().addTo(map);
-      let destMarker = null;
-      let destLatLng = null;
+  <div id="sheet">
+    <div class="tabs">
+      <button class="tab active" data-tab="trails">Trails</button>
+      <button class="tab" data-tab="known">Known Routes</button>
+      <button class="tab" data-tab="legal">Legal</button>
+      <button class="tab" data-tab="vehicle">LC250</button>
+    </div>
+    <div class="panels">
+      <div class="panel active" id="panel-trails">
+        <div id="trailList"><div class="empty">Search a village or place to show mapped off-road tracks around it, or tap “Off-road trails near me” to use your current location.</div></div>
+        <div id="actionBar" style="display:none;position:sticky;bottom:-1px;background:var(--panel);padding:10px 0 2px;margin-top:4px;border-top:1px solid var(--line);">
+          <div id="actionTitle" style="font-family:'Oswald',sans-serif;font-size:13px;color:var(--stone);margin-bottom:8px;"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="navStart" style="flex:1 1 30%;background:var(--panel-2);border:1px solid var(--copper-dim);color:var(--copper);padding:10px 6px;border-radius:8px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.2px;">Navigate to start</button>
+            <button id="navFollow" style="flex:1 1 30%;background:var(--panel-2);border:1px solid var(--copper-dim);color:var(--copper);padding:10px 6px;border-radius:8px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.2px;">Open in Maps</button>
+            <button id="liveTrack" style="flex:1 1 30%;background:var(--copper);border:none;color:#171f1a;font-weight:600;padding:10px 6px;border-radius:8px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.2px;">Track live on map</button>
+          </div>
+        </div>
+      </div>
 
-      /* ===================== CLASSIFICATION ===================== */
-      // Maps OSM tracktype / surface / access tags to a suitability read for a
-      // STOCK 2024 Land Cruiser 250 (no lift, no mud tyres, ~215-235mm clearance).
-      function classify(tags) {
-        tags = tags || {};
-        const access = (tags.access || "").toLowerCase();
-        const vehicle = (tags.vehicle || "").toLowerCase();
-        const motor = (tags.motor_vehicle || "").toLowerCase();
-        const tt = (tags.tracktype || "").toLowerCase();
-        const surface = (tags.surface || "").toLowerCase();
-        const smooth = (tags.smoothness || "").toLowerCase();
-        const fourwd = (tags["4wd_only"] || "").toLowerCase();
+      <div class="panel" id="panel-known"></div>
 
-        if (
-          ["private", "no"].includes(access) ||
-          ["private", "no"].includes(vehicle) ||
-          ["private", "no"].includes(motor)
-        ) {
-          return {
-            tier: "restricted",
-            label: "Access restricted",
-            cls: "b-restricted",
-            note: "Tagged private/no-access in OpenStreetMap. Do not assume you can drive this — verify locally before relying on it.",
-          };
-        }
-        if (
-          fourwd === "yes" ||
-          smooth === "very_horrible" ||
-          smooth === "horrible" ||
-          tt === "grade5"
-        ) {
-          return {
-            tier: "difficult",
-            label: "Difficult · stock caution",
-            cls: "b-difficult",
-            note: "Soft/rough surface (grade 4–5 or 4wd-only tag). A stock LC250 has real ground clearance and lockers, but no lift or aggressive tyres — treat as marginal, especially wet.",
-          };
-        }
-        if (
-          tt === "grade4" ||
-          surface === "ground" ||
-          surface === "earth" ||
-          surface === "dirt"
-        ) {
-          return {
-            tier: "difficult",
-            label: "Difficult · stock caution",
-            cls: "b-difficult",
-            note: "Mostly soft surface. Fine dry, can get greasy or rutted after rain — a stock LC250 will manage it slowly and carefully in good weather.",
-          };
-        }
-        if (tt === "grade3" || surface === "unpaved") {
-          return {
-            tier: "moderate",
-            label: "Moderate · OK stock",
-            cls: "b-moderate",
-            note: "Mixed hard/soft forestry-track surface — well within a stock LC250's ability in dry conditions.",
-          };
-        }
-        if (
-          tt === "grade1" ||
-          tt === "grade2" ||
-          ["compacted", "gravel", "fine_gravel"].includes(surface)
-        ) {
-          return {
-            tier: "easy",
-            label: "Easy · stock fine",
-            cls: "b-easy",
-            note: "Compacted forestry/gravel track. Comfortably within stock capability.",
-          };
-        }
-        return {
-          tier: "unrated",
-          label: "Unrated in OSM",
-          cls: "b-unrated",
-          note: "No tracktype/surface tag on this way. Could be anything from a graded forestry road to a rutted goat path — inspect on arrival before committing.",
-        };
-      }
+      <div class="panel" id="panel-legal"></div>
 
-      const TIER_COLOR = {
-        easy: "#8a9a5b",
-        moderate: "#d0a23a",
-        difficult: "#b5502f",
-        restricted: "#8b3a3a",
-        unrated: "#6b7280",
-      };
+      <div class="panel" id="panel-vehicle"></div>
+    </div>
+  </div>
+</div>
 
-      /* rough bounding box for the Republic of Cyprus government-controlled area,
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+/* ===================== MAP SETUP ===================== */
+const map = L.map('map', {zoomControl:false}).setView([34.92, 32.90], 9);
+L.control.zoom({position:'bottomright'}).addTo(map);
+// Satellite imagery has no stylised paved-road vector layer competing with our
+// track overlay — this is the closest free option to "only show the off-road tracks".
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 19,
+  attribution: 'Esri, Maxar, Earthstar Geographics'
+}).addTo(map);
+document.querySelector('.leaflet-tile-pane').style.filter = 'brightness(0.72) saturate(0.85)';
+
+let trackLayer = L.layerGroup().addTo(map);
+let destMarker = null;
+let destLatLng = null;
+
+/* ===================== CLASSIFICATION ===================== */
+// Maps OSM tracktype / surface / access tags to a suitability read for a
+// STOCK 2024 Land Cruiser 250 (no lift, no mud tyres, ~215-235mm clearance).
+function classify(tags){
+  tags = tags || {};
+  const access = (tags.access||'').toLowerCase();
+  const vehicle = (tags.vehicle||'').toLowerCase();
+  const motor = (tags.motor_vehicle||'').toLowerCase();
+  const tt = (tags.tracktype||'').toLowerCase();
+  const surface = (tags.surface||'').toLowerCase();
+  const smooth = (tags.smoothness||'').toLowerCase();
+  const fourwd = (tags['4wd_only']||'').toLowerCase();
+
+  if (['private','no'].includes(access) || ['private','no'].includes(vehicle) || ['private','no'].includes(motor)){
+    return {tier:'restricted', label:'Access restricted', cls:'b-restricted',
+      note:'Tagged private/no-access in OpenStreetMap. Do not assume you can drive this — verify locally before relying on it.'};
+  }
+  if (fourwd === 'yes' || smooth === 'very_horrible' || smooth === 'horrible' || tt === 'grade5'){
+    return {tier:'difficult', label:'Difficult · stock caution', cls:'b-difficult',
+      note:'Soft/rough surface (grade 4–5 or 4wd-only tag). A stock LC250 has real ground clearance and lockers, but no lift or aggressive tyres — treat as marginal, especially wet.'};
+  }
+  if (tt === 'grade4' || surface === 'ground' || surface === 'earth' || surface === 'dirt'){
+    return {tier:'difficult', label:'Difficult · stock caution', cls:'b-difficult',
+      note:'Mostly soft surface. Fine dry, can get greasy or rutted after rain — a stock LC250 will manage it slowly and carefully in good weather.'};
+  }
+  if (tt === 'grade3' || surface === 'unpaved'){
+    return {tier:'moderate', label:'Moderate · OK stock', cls:'b-moderate',
+      note:'Mixed hard/soft forestry-track surface — well within a stock LC250\'s ability in dry conditions.'};
+  }
+  if (tt === 'grade1' || tt === 'grade2' || ['compacted','gravel','fine_gravel'].includes(surface)){
+    return {tier:'easy', label:'Easy · stock fine', cls:'b-easy',
+      note:'Compacted forestry/gravel track. Comfortably within stock capability.'};
+  }
+  return {tier:'unrated', label:'Unrated in OSM', cls:'b-unrated',
+    note:'No tracktype/surface tag on this way. Could be anything from a graded forestry road to a rutted goat path — inspect on arrival before committing.'};
+}
+
+const TIER_COLOR = {easy:'#8a9a5b', moderate:'#d0a23a', difficult:'#b5502f', restricted:'#8b3a3a', unrated:'#6b7280'};
+
+/* rough bounding box for the Republic of Cyprus government-controlled area,
    used only to bias search — not a precise legal boundary */
-      const RC_VIEWBOX = "32.20,35.75,34.65,34.50"; // left,top,right,bottom
+const RC_VIEWBOX = '32.20,35.75,34.65,34.50'; // left,top,right,bottom
 
-      function haversine(a, b) {
-        const R = 6371,
-          toRad = (d) => (d * Math.PI) / 180;
-        const dLat = toRad(b[0] - a[0]),
-          dLon = toRad(b[1] - a[1]);
-        const la1 = toRad(a[0]),
-          la2 = toRad(b[0]);
-        const h =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) ** 2;
-        return 2 * R * Math.asin(Math.sqrt(h));
-      }
+function haversine(a,b){
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(b[0]-a[0]), dLon=toRad(b[1]-a[1]);
+  const la1=toRad(a[0]), la2=toRad(b[0]);
+  const h=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
 
-      /* ===================== SEARCH FLOW ===================== */
-      const statusEl = document.getElementById("status");
-      const listEl = document.getElementById("trailList");
+/* ===================== SEARCH FLOW ===================== */
+const statusEl = document.getElementById('status');
+const listEl = document.getElementById('trailList');
 
-      function pickBestMatch(results, query) {
-        const q = query.toLowerCase();
-        const goodTypes = [
-          "village",
-          "hamlet",
-          "town",
-          "city",
-          "municipality",
-          "suburb",
-        ];
-        let best = results[0],
-          bestScore = -1;
-        results.forEach((r) => {
-          let score = parseFloat(r.importance) || 0;
-          if (r.display_name.toLowerCase().includes(q)) score += 1;
-          if (goodTypes.includes(r.type)) score += 0.3;
-          if (score > bestScore) {
-            bestScore = score;
-            best = r;
-          }
-        });
-        return best;
-      }
+function pickBestMatch(results, query){
+  const q = query.toLowerCase();
+  const goodTypes = ['village','hamlet','town','city','municipality','suburb'];
+  let best = results[0], bestScore = -1;
+  results.forEach(r=>{
+    let score = parseFloat(r.importance)||0;
+    if(r.display_name.toLowerCase().includes(q)) score += 1;
+    if(goodTypes.includes(r.type)) score += 0.3;
+    if(score > bestScore){ bestScore = score; best = r; }
+  });
+  return best;
+}
 
-      async function geocode(query) {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=cy&limit=5&addressdetails=1`;
-        const res = await fetch(url, {
-          headers: { Accept: "application/json" },
-        });
-        if (!res.ok) throw new Error("geocode failed");
-        const data = await res.json();
-        if (!data.length) throw new Error("not found");
-        return pickBestMatch(data, query);
-      }
+async function geocode(query){
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=cy&limit=5&addressdetails=1`;
+  const res = await fetch(url, {headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error('geocode failed');
+  const data = await res.json();
+  if(!data.length) throw new Error('not found');
+  return pickBestMatch(data, query);
+}
 
-      function fetchWithTimeout(url, opts, ms) {
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), ms);
-        return fetch(url, { ...opts, signal: ctrl.signal }).finally(() =>
-          clearTimeout(timer),
-        );
-      }
+function fetchWithTimeout(url, opts, ms){
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), ms);
+  return fetch(url, {...opts, signal: ctrl.signal}).finally(()=>clearTimeout(timer));
+}
 
-      async function runOverpass(query, onProgress) {
-        // Ask several public mirrors at the same time and use the first successful
-        // response. This avoids waiting for server 1, then server 2, then server 3.
-        const endpoints = [
-          "https://overpass.kumi.systems/api/interpreter",
-          "https://overpass-api.de/api/interpreter",
-          "https://overpass.nchc.org.tw/api/interpreter",
-        ];
-        onProgress && onProgress("Loading OpenStreetMap trail data…");
+async function runOverpass(query, onProgress){
+  // Use our own Netlify Function. The browser no longer contacts public
+  // Overpass servers directly, avoiding Safari/CORS and mirror failures.
+  onProgress && onProgress('Loading mapped dirt roads and tracks…');
+  const res = await fetchWithTimeout('/api/trails', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({query})
+  }, 28000);
+  if(!res.ok){
+    let detail = '';
+    try{ detail = (await res.json()).error || ''; }catch(e){}
+    throw new Error(detail || `trail service ${res.status}`);
+  }
+  const data = await res.json();
+  return data.elements || [];
+}
 
-        const requests = endpoints.map(async (ep) => {
-          const res = await fetchWithTimeout(
-            ep,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type":
-                  "application/x-www-form-urlencoded;charset=UTF-8",
-              },
-              body: "data=" + encodeURIComponent(query),
-            },
-            14000,
-          );
-          if (!res.ok) throw new Error("map server " + res.status);
-          const data = await res.json();
-          return data.elements || [];
-        });
+async function fetchTracks(lat, lon, onProgress){
+  const radiusM = 8000;
+  const cacheKey = `xoma-tracks-${lat.toFixed(3)}-${lon.toFixed(3)}`;
+  try{
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if(cached && Date.now()-cached.savedAt < 6*60*60*1000) return cached.elements;
+  }catch(e){}
 
-        try {
-          return await Promise.any(requests);
-        } catch (e) {
-          throw new Error("trail service unavailable");
-        }
-      }
+  // “Off-road” here means mapped tracks plus roads explicitly tagged with
+  // an unpaved/gravel/dirt/earth/ground surface. These do not need an official
+  // trail name. Footpaths are deliberately excluded unless motor vehicles are allowed.
+  const query = `[out:json][timeout:22];(
+    way["highway"="track"](around:${radiusM},${lat},${lon});
+    way["highway"~"^(service|unclassified|road|residential)$"]["surface"~"^(unpaved|gravel|fine_gravel|compacted|dirt|earth|ground|mud|sand|rock|pebblestone)$"](around:${radiusM},${lat},${lon});
+    way["highway"="path"]["motor_vehicle"~"^(yes|designated|permissive)$"](around:${radiusM},${lat},${lon});
+  );out geom;`;
+  const elements = await runOverpass(query, onProgress);
+  try{ localStorage.setItem(cacheKey, JSON.stringify({savedAt:Date.now(), elements})); }catch(e){}
+  return elements;
+}
 
-      async function fetchTracks(lat, lon, onProgress) {
-        const radiusM = 8000;
-        const cacheKey = `xoma-tracks-${lat.toFixed(3)}-${lon.toFixed(3)}`;
-        try {
-          const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
-          if (cached && Date.now() - cached.savedAt < 6 * 60 * 60 * 1000)
-            return cached.elements;
-        } catch (e) {}
+async function fetchTracksCorridor(from, to, widthKm, onProgress){
+  const distKm = haversine(from, to);
+  // Keep the query area bounded so dense forest regions (Troodos etc.) don't
+  // time out the Overpass servers on long from->to searches.
+  const AREA_CAP_KM2 = 650;
+  let bufKm = widthKm;
+  if(distKm > 6){
+    bufKm = Math.max(2.5, Math.min(widthKm, AREA_CAP_KM2/(2*distKm)));
+  }
+  const bufDeg = bufKm/111;
+  const south = Math.min(from[0],to[0]) - bufDeg;
+  const north = Math.max(from[0],to[0]) + bufDeg;
+  const west = Math.min(from[1],to[1]) - bufDeg;
+  const east = Math.max(from[1],to[1]) + bufDeg;
+  const query = `[out:json][timeout:22];(way["highway"="track"](${south},${west},${north},${east}););out geom;`;
+  const elements = await runOverpass(query, onProgress);
+  return {elements, bufKm};
+}
 
-        const query = `[out:json][timeout:12];way["highway"="track"](around:${radiusM},${lat},${lon});out geom;`;
-        const elements = await runOverpass(query, onProgress);
-        try {
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify({ savedAt: Date.now(), elements }),
-          );
-        } catch (e) {}
-        return elements;
-      }
+// Approximate point-to-segment distance in km, treating lat/lon as locally planar
+// (fine at Cyprus's scale) — used to tell whether a track lies "on the way" between
+// the from/to points versus just nearby the destination.
+function pointSegDistKm(p, a, b){
+  const kmLat = 111.0, kmLon = 111.0*Math.cos(a[0]*Math.PI/180);
+  const P=[p[1]*kmLon,p[0]*kmLat], A=[a[1]*kmLon,a[0]*kmLat], B=[b[1]*kmLon,b[0]*kmLat];
+  const AB=[B[0]-A[0],B[1]-A[1]], AP=[P[0]-A[0],P[1]-A[1]];
+  const len2 = AB[0]**2+AB[1]**2;
+  let t = len2 ? (AP[0]*AB[0]+AP[1]*AB[1])/len2 : 0;
+  t = Math.max(0, Math.min(1,t));
+  const proj = [A[0]+AB[0]*t, A[1]+AB[1]*t];
+  const dx = P[0]-proj[0], dy = P[1]-proj[1];
+  return {dist: Math.sqrt(dx*dx+dy*dy), t};
+}
 
-      async function fetchTracksCorridor(from, to, widthKm, onProgress) {
-        const distKm = haversine(from, to);
-        // Keep the query area bounded so dense forest regions (Troodos etc.) don't
-        // time out the Overpass servers on long from->to searches.
-        const AREA_CAP_KM2 = 650;
-        let bufKm = widthKm;
-        if (distKm > 6) {
-          bufKm = Math.max(2.5, Math.min(widthKm, AREA_CAP_KM2 / (2 * distKm)));
-        }
-        const bufDeg = bufKm / 111;
-        const south = Math.min(from[0], to[0]) - bufDeg;
-        const north = Math.max(from[0], to[0]) + bufDeg;
-        const west = Math.min(from[1], to[1]) - bufDeg;
-        const east = Math.max(from[1], to[1]) + bufDeg;
-        const query = `[out:json][timeout:22];(way["highway"="track"](${south},${west},${north},${east}););out geom;`;
-        const elements = await runOverpass(query, onProgress);
-        return { elements, bufKm };
-      }
+function clearTracks(){ trackLayer.clearLayers(); }
 
-      // Approximate point-to-segment distance in km, treating lat/lon as locally planar
-      // (fine at Cyprus's scale) — used to tell whether a track lies "on the way" between
-      // the from/to points versus just nearby the destination.
-      function pointSegDistKm(p, a, b) {
-        const kmLat = 111.0,
-          kmLon = 111.0 * Math.cos((a[0] * Math.PI) / 180);
-        const P = [p[1] * kmLon, p[0] * kmLat],
-          A = [a[1] * kmLon, a[0] * kmLat],
-          B = [b[1] * kmLon, b[0] * kmLat];
-        const AB = [B[0] - A[0], B[1] - A[1]],
-          AP = [P[0] - A[0], P[1] - A[1]];
-        const len2 = AB[0] ** 2 + AB[1] ** 2;
-        let t = len2 ? (AP[0] * AB[0] + AP[1] * AB[1]) / len2 : 0;
-        t = Math.max(0, Math.min(1, t));
-        const proj = [A[0] + AB[0] * t, A[1] + AB[1] * t];
-        const dx = P[0] - proj[0],
-          dy = P[1] - proj[1];
-        return { dist: Math.sqrt(dx * dx + dy * dy), t };
-      }
+/* ===================== SELECT / NAVIGATE ===================== */
+let myLocation = null;
+navigator.geolocation && navigator.geolocation.getCurrentPosition(
+  pos => { myLocation = [pos.coords.latitude, pos.coords.longitude]; },
+  ()=>{}, {enableHighAccuracy:false, timeout:8000}
+);
 
-      function clearTracks() {
-        trackLayer.clearLayers();
-      }
+function sampleCoords(coords, maxPoints){
+  if(coords.length <= maxPoints) return coords;
+  const step = (coords.length-1)/(maxPoints-1);
+  const out = [];
+  for(let i=0;i<maxPoints;i++) out.push(coords[Math.round(i*step)]);
+  return out;
+}
 
-      /* ===================== SELECT / NAVIGATE ===================== */
-      let myLocation = null;
-      navigator.geolocation &&
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            myLocation = [pos.coords.latitude, pos.coords.longitude];
-          },
-          () => {},
-          { enableHighAccuracy: false, timeout: 8000 },
-        );
+function selectTrail(item, line){
+  document.querySelectorAll('.trail-card').forEach(c=>c.classList.remove('selected'));
+  if(item.card) item.card.classList.add('selected');
+  const bar = document.getElementById('actionBar');
+  bar.style.display = 'block';
+  document.getElementById('actionTitle').textContent = `Selected: ${item.name}`;
 
-      function sampleCoords(coords, maxPoints) {
-        if (coords.length <= maxPoints) return coords;
-        const step = (coords.length - 1) / (maxPoints - 1);
-        const out = [];
-        for (let i = 0; i < maxPoints; i++)
-          out.push(coords[Math.round(i * step)]);
-        return out;
-      }
+  // switching selection stops any previous live tracking session
+  stopLiveTracking();
 
-      function selectTrail(item, line) {
-        document
-          .querySelectorAll(".trail-card")
-          .forEach((c) => c.classList.remove("selected"));
-        if (item.card) item.card.classList.add("selected");
-        const bar = document.getElementById("actionBar");
-        bar.style.display = "block";
-        document.getElementById("actionTitle").textContent =
-          `Selected: ${item.name}`;
+  document.getElementById('navStart').onclick = ()=>{
+    const start = item.coords[0];
+    const originParam = myLocation ? `&origin=${myLocation[0]},${myLocation[1]}` : '';
+    window.open(`https://www.google.com/maps/dir/?api=1${originParam}&destination=${start[0]},${start[1]}&travelmode=driving`, '_blank');
+  };
+  document.getElementById('navFollow').onclick = ()=>{
+    const pts = sampleCoords(item.coords, 12);
+    const path = pts.map(p=>`${p[0]},${p[1]}`).join('/');
+    const origin = myLocation ? `${myLocation[0]},${myLocation[1]}/` : '';
+    window.open(`https://www.google.com/maps/dir/${origin}${path}`, '_blank');
+  };
+  document.getElementById('liveTrack').onclick = ()=> toggleLiveTracking(item, line);
+}
 
-        // switching selection stops any previous live tracking session
-        stopLiveTracking();
+/* ---- live GPS tracking directly on this map ---- */
+let watchId = null, liveMarker = null, liveAccuracy = null;
 
-        document.getElementById("navStart").onclick = () => {
-          const start = item.coords[0];
-          const originParam = myLocation
-            ? `&origin=${myLocation[0]},${myLocation[1]}`
-            : "";
-          window.open(
-            `https://www.google.com/maps/dir/?api=1${originParam}&destination=${start[0]},${start[1]}&travelmode=driving`,
-            "_blank",
-          );
-        };
-        document.getElementById("navFollow").onclick = () => {
-          const pts = sampleCoords(item.coords, 12);
-          const path = pts.map((p) => `${p[0]},${p[1]}`).join("/");
-          const origin = myLocation ? `${myLocation[0]},${myLocation[1]}/` : "";
-          window.open(
-            `https://www.google.com/maps/dir/${origin}${path}`,
-            "_blank",
-          );
-        };
-        document.getElementById("liveTrack").onclick = () =>
-          toggleLiveTracking(item, line);
-      }
+function stopLiveTracking(){
+  if(watchId){ navigator.geolocation.clearWatch(watchId); watchId = null; }
+  const btn = document.getElementById('liveTrack');
+  if(btn){ btn.textContent = 'Track live on map'; btn.style.background = 'var(--copper)'; btn.style.color = '#171f1a'; }
+}
 
-      /* ---- live GPS tracking directly on this map ---- */
-      let watchId = null,
-        liveMarker = null,
-        liveAccuracy = null;
+function toggleLiveTracking(item){
+  const btn = document.getElementById('liveTrack');
+  if(watchId){ stopLiveTracking(); return; }
+  if(!navigator.geolocation){ statusEl.textContent = 'This browser has no location support.'; return; }
+  btn.textContent = 'Stop live tracking';
+  btn.style.background = 'var(--danger)';
+  btn.style.color = '#f5e6e6';
+  watchId = navigator.geolocation.watchPosition(pos=>{
+    const p = [pos.coords.latitude, pos.coords.longitude];
+    myLocation = p;
+    if(!liveMarker){
+      liveMarker = L.circleMarker(p, {radius:8, color:'#fff', weight:2, fillColor:'#3b82f6', fillOpacity:0.95}).addTo(map);
+    } else {
+      liveMarker.setLatLng(p);
+    }
+    map.panTo(p, {animate:true});
+    let min = Infinity;
+    item.coords.forEach(c=>{ const d = haversine(p,c); if(d<min) min = d; });
+    const meters = min*1000;
+    statusEl.textContent = meters < 40
+      ? `Live — on the mapped track (${meters.toFixed(0)} m from the line).`
+      : `Live — ${meters.toFixed(0)} m off the mapped track line.`;
+  }, err=>{
+    statusEl.textContent = 'Could not get live location: ' + err.message;
+    stopLiveTracking();
+  }, {enableHighAccuracy:true, maximumAge:2000, timeout:12000});
+}
 
-      function stopLiveTracking() {
-        if (watchId) {
-          navigator.geolocation.clearWatch(watchId);
-          watchId = null;
-        }
-        const btn = document.getElementById("liveTrack");
-        if (btn) {
-          btn.textContent = "Track live on map";
-          btn.style.background = "var(--copper)";
-          btn.style.color = "#171f1a";
-        }
-      }
+function renderTracks(elements, center){
+  clearTracks();
+  listEl.innerHTML = '';
+  document.getElementById('actionBar').style.display = 'none';
+  stopLiveTracking();
+  if(!elements.length){
+    listEl.innerHTML = '<div class="empty">No mapped dirt roads or off-road tracks were found around this point. This means OpenStreetMap has no matching track or unpaved-road tags here; it does not prove that no dirt roads exist.</div>';
+    return;
+  }
+  const items = elements.map(w=>{
+    const c = classify(w.tags);
+    const coords = (w.geometry||[]).map(g=>[g.lat,g.lon]);
+    const mid = coords[Math.floor(coords.length/2)] || coords[0];
+    const dist = mid ? haversine(center, mid) : 999;
+    const onRoute = false;
+    const name = w.tags && (w.tags.name || w.tags.ref) ? (w.tags.name || w.tags.ref) : 'Unnamed track';
+    return {w, c, coords, dist, name, onRoute, t:1};
+  }).sort((a,b)=>a.dist-b.dist).slice(0,150);
 
-      function toggleLiveTracking(item) {
-        const btn = document.getElementById("liveTrack");
-        if (watchId) {
-          stopLiveTracking();
-          return;
-        }
-        if (!navigator.geolocation) {
-          statusEl.textContent = "This browser has no location support.";
-          return;
-        }
-        btn.textContent = "Stop live tracking";
-        btn.style.background = "var(--danger)";
-        btn.style.color = "#f5e6e6";
-        watchId = navigator.geolocation.watchPosition(
-          (pos) => {
-            const p = [pos.coords.latitude, pos.coords.longitude];
-            myLocation = p;
-            if (!liveMarker) {
-              liveMarker = L.circleMarker(p, {
-                radius: 8,
-                color: "#fff",
-                weight: 2,
-                fillColor: "#3b82f6",
-                fillOpacity: 0.95,
-              }).addTo(map);
-            } else {
-              liveMarker.setLatLng(p);
-            }
-            map.panTo(p, { animate: true });
-            let min = Infinity;
-            item.coords.forEach((c) => {
-              const d = haversine(p, c);
-              if (d < min) min = d;
-            });
-            const meters = min * 1000;
-            statusEl.textContent =
-              meters < 40
-                ? `Live — on the mapped track (${meters.toFixed(0)} m from the line).`
-                : `Live — ${meters.toFixed(0)} m off the mapped track line.`;
-          },
-          (err) => {
-            statusEl.textContent =
-              "Could not get live location: " + err.message;
-            stopLiveTracking();
-          },
-          { enableHighAccuracy: true, maximumAge: 2000, timeout: 12000 },
-        );
-      }
-
-      function renderTracks(elements, center) {
-        clearTracks();
-        listEl.innerHTML = "";
-        document.getElementById("actionBar").style.display = "none";
-        stopLiveTracking();
-        if (!elements.length) {
-          listEl.innerHTML =
-            '<div class="empty">No tracks tagged in OpenStreetMap in this area. Try widening the width, or this area may simply be sparsely mapped — that does not necessarily mean no trails exist, only that none are recorded yet.</div>';
-          return;
-        }
-        const items = elements
-          .map((w) => {
-            const c = classify(w.tags);
-            const coords = (w.geometry || []).map((g) => [g.lat, g.lon]);
-            const mid = coords[Math.floor(coords.length / 2)] || coords[0];
-            const dist = mid ? haversine(center, mid) : 999;
-            const onRoute = false;
-            const name =
-              w.tags && (w.tags.name || w.tags.ref)
-                ? w.tags.name || w.tags.ref
-                : "Unnamed track";
-            return { w, c, coords, dist, name, onRoute, t };
-          })
-          .sort((a, b) => a.dist - b.dist)
-          .slice(0, 150);
-
-        items.forEach((item) => {
-          if (item.coords.length < 2) return;
-          const emphasize = true;
-          // white casing underneath for contrast against satellite imagery
-          L.polyline(item.coords, {
-            color: "#ffffff",
-            weight: emphasize ? 7 : 5,
-            opacity: emphasize ? 0.55 : 0.3,
-            interactive: false,
-          }).addTo(trackLayer);
-          const line = L.polyline(item.coords, {
-            color: TIER_COLOR[item.c.tier],
-            weight: emphasize ? 4 : 3,
-            opacity: emphasize ? 0.95 : 0.55,
-          });
-          line.bindPopup(`<div class="popup-title">${item.name}</div>
-      <span class="badge ${item.c.cls}">${item.c.label}</span>${item.onRoute ? ' <span style="color:#8fc4ff;font-size:10px;">ON ROUTE</span>' : ""}
+  items.forEach(item=>{
+    if(item.coords.length<2) return;
+    const emphasize = true;
+    // white casing underneath for contrast against satellite imagery
+    L.polyline(item.coords, {color:'#ffffff', weight: emphasize?7:5, opacity: emphasize?0.55:0.3, interactive:false}).addTo(trackLayer);
+    const line = L.polyline(item.coords, {color: TIER_COLOR[item.c.tier], weight: emphasize?4:3, opacity: emphasize?0.95:0.55});
+    line.bindPopup(`<div class="popup-title">${item.name}</div>
+      <span class="badge ${item.c.cls}">${item.c.label}</span>${item.onRoute?' <span style="color:#8fc4ff;font-size:10px;">ON ROUTE</span>':''}
       <div class="popup-note">${item.c.note}</div>
       <div style="margin-top:6px;font-size:11px;color:var(--stone-dim);">Tap this trail's card below to navigate or track it live.</div>`);
-          line.addTo(trackLayer);
-          line.on("click", () => {
-            selectTrail(item, line);
-            map.fitBounds(line.getBounds(), { maxZoom: 14 });
-          });
+    line.addTo(trackLayer);
+    line.on('click', ()=>{ selectTrail(item, line); map.fitBounds(line.getBounds(), {maxZoom:14}); });
 
-          const card = document.createElement("div");
-          card.className = "trail-card";
-          card.innerHTML = `<div class="tc-top"><div class="tc-name">${item.name}${item.onRoute ? " <span style=\"color:#8fc4ff;font-size:10px;font-family:'IBM Plex Mono',monospace;\">ON ROUTE</span>" : ""}</div><div class="tc-dist">${item.dist.toFixed(1)} km</div></div>
+    const card = document.createElement('div');
+    card.className = 'trail-card';
+    card.innerHTML = `<div class="tc-top"><div class="tc-name">${item.name}${item.onRoute?' <span style="color:#8fc4ff;font-size:10px;font-family:\'IBM Plex Mono\',monospace;">ON ROUTE</span>':''}</div><div class="tc-dist">${item.dist.toFixed(1)} km</div></div>
       <span class="badge ${item.c.cls}">${item.c.label}</span>
       <div class="tc-note">${item.c.note}</div>`;
-          item.card = card;
-          card.addEventListener("click", () => {
-            map.fitBounds(line.getBounds(), { maxZoom: 14 });
-            line.openPopup();
-            selectTrail(item, line);
-          });
-          listEl.appendChild(card);
-        });
+    item.card = card;
+    card.addEventListener('click', ()=>{
+      map.fitBounds(line.getBounds(), {maxZoom:14});
+      line.openPopup();
+      selectTrail(item, line);
+    });
+    listEl.appendChild(card);
+  });
 
-        if (!listEl.children.length) {
-          listEl.innerHTML =
-            '<div class="empty">Tracks found nearby but none had usable geometry. Try a different spot.</div>';
-        }
-      }
+  if(!listEl.children.length){
+    listEl.innerHTML = '<div class="empty">Tracks found nearby but none had usable geometry. Try a different spot.</div>';
+  }
+}
 
-      let fromMarker = null,
-        refLine = null;
+let fromMarker = null, refLine = null;
 
-      async function searchAroundPoint(center, label) {
-        if (destMarker) map.removeLayer(destMarker);
-        if (fromMarker) {
-          map.removeLayer(fromMarker);
-          fromMarker = null;
-        }
-        if (refLine) {
-          map.removeLayer(refLine);
-          refLine = null;
-        }
+async function searchAroundPoint(center, label){
+  if(destMarker) map.removeLayer(destMarker);
+  if(fromMarker){ map.removeLayer(fromMarker); fromMarker = null; }
+  if(refLine){ map.removeLayer(refLine); refLine = null; }
 
-        destLatLng = center;
-        destMarker = L.marker(center).addTo(map).bindPopup(label);
-        map.setView(center, 12);
-        destMarker.openPopup();
+  destLatLng = center;
+  destMarker = L.marker(center).addTo(map).bindPopup(label);
+  map.setView(center, 12);
+  destMarker.openPopup();
 
-        statusEl.innerHTML =
-          '<span class="spin"></span>Pulling mapped off-road tracks around this location…';
-        const progress = (msg) => {
-          statusEl.innerHTML = `<span class="spin"></span>${msg}`;
-        };
-        const elements = await fetchTracks(center[0], center[1], progress);
-        renderTracks(elements, center);
-        statusEl.textContent = `${label} — ${elements.length} mapped off-road track(s) found nearby.`;
-      }
+  statusEl.innerHTML = '<span class="spin"></span>Pulling mapped off-road tracks around this location…';
+  const progress = msg=>{ statusEl.innerHTML = `<span class="spin"></span>${msg}`; };
+  const elements = await fetchTracks(center[0], center[1], progress);
+  renderTracks(elements, center);
+  statusEl.textContent = `${label} — ${elements.length} mapped off-road track(s) found nearby.`;
+}
 
-      async function runSearch() {
-        const toQ = document.getElementById("qTo").value.trim();
-        if (!toQ) {
-          statusEl.textContent = "Type a village, town, or place first.";
-          return;
-        }
-        statusEl.innerHTML = '<span class="spin"></span>Locating place…';
-        listEl.innerHTML = "";
-        document.getElementById("actionBar").style.display = "none";
-        try {
-          const place = await geocode(toQ);
-          const center = [parseFloat(place.lat), parseFloat(place.lon)];
-          const label = place.display_name.split(",").slice(0, 2).join(",");
-          await searchAroundPoint(center, label);
-        } catch (e) {
-          console.error(e);
-          statusEl.textContent =
-            e.message === "not found"
-              ? "Could not find that place in Cyprus — try “Fikardou village” or a nearby town."
-              : "The public trail service did not respond. Check your connection and try again.";
-          listEl.innerHTML = '<div class="empty">No trail data loaded.</div>';
-        }
-      }
+async function runSearch(){
+  const toQ = document.getElementById('qTo').value.trim();
+  if(!toQ){ statusEl.textContent = 'Type a village, town, or place first.'; return; }
+  statusEl.innerHTML = '<span class="spin"></span>Locating place…';
+  listEl.innerHTML = '';
+  document.getElementById('actionBar').style.display = 'none';
+  try{
+    const place = await geocode(toQ);
+    const center = [parseFloat(place.lat), parseFloat(place.lon)];
+    const label = place.display_name.split(',').slice(0,2).join(',');
+    await searchAroundPoint(center, label);
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = e.message === 'not found'
+      ? 'Could not find that place in Cyprus — try “Fikardou village” or a nearby town.'
+      : 'Could not load mapped dirt roads right now. The map-data server may be busy; try again shortly.';
+    listEl.innerHTML = '<div class="empty">No trail data loaded.</div>';
+  }
+}
 
-      async function findNearMe() {
-        if (!navigator.geolocation) {
-          statusEl.textContent =
-            "This browser does not support location access.";
-          return;
-        }
-        statusEl.innerHTML = '<span class="spin"></span>Getting your location…';
-        listEl.innerHTML = "";
-        document.getElementById("actionBar").style.display = "none";
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            try {
-              myLocation = [pos.coords.latitude, pos.coords.longitude];
-              await searchAroundPoint(myLocation, "My location");
-              if (fromMarker) {
-                map.removeLayer(fromMarker);
-              }
-              fromMarker = L.circleMarker(myLocation, {
-                radius: 8,
-                color: "#fff",
-                weight: 2,
-                fillColor: "#3b82f6",
-                fillOpacity: 0.95,
-              })
-                .addTo(map)
-                .bindPopup("You are here");
-            } catch (e) {
-              console.error(e);
-              statusEl.textContent =
-                "Could not load nearby off-road tracks right now. Please try again.";
-              listEl.innerHTML =
-                '<div class="empty">No trail data loaded.</div>';
-            }
-          },
-          (err) => {
-            statusEl.textContent =
-              location.protocol === "file:"
-                ? "Location is blocked when opened as a local file. Open this app from an HTTPS website."
-                : "Location access failed: " + err.message;
-            listEl.innerHTML =
-              '<div class="empty">Allow location access, then tap the near-me button again.</div>';
-          },
-          { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 },
-        );
-      }
+async function findNearMe(){
+  if(!navigator.geolocation){
+    statusEl.textContent = 'This browser does not support location access.';
+    return;
+  }
+  statusEl.innerHTML = '<span class="spin"></span>Getting your location…';
+  listEl.innerHTML = '';
+  document.getElementById('actionBar').style.display = 'none';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    try{
+      myLocation = [pos.coords.latitude, pos.coords.longitude];
+      await searchAroundPoint(myLocation, 'My location');
+      if(fromMarker){ map.removeLayer(fromMarker); }
+      fromMarker = L.circleMarker(myLocation, {radius:8, color:'#fff', weight:2, fillColor:'#3b82f6', fillOpacity:0.95}).addTo(map).bindPopup('You are here');
+    }catch(e){
+      console.error(e);
+      statusEl.textContent = 'Could not load nearby off-road tracks right now. Please try again.';
+      listEl.innerHTML = '<div class="empty">No trail data loaded.</div>';
+    }
+  }, err=>{
+    statusEl.textContent = location.protocol === 'file:' ? 'Location is blocked when opened as a local file. Open this app from an HTTPS website.' : 'Location access failed: ' + err.message;
+    listEl.innerHTML = '<div class="empty">Allow location access, then tap the near-me button again.</div>';
+  }, {enableHighAccuracy:true, timeout:12000, maximumAge:30000});
+}
 
-      document.getElementById("go").addEventListener("click", runSearch);
-      document.getElementById("nearMe").addEventListener("click", findNearMe);
-      document.getElementById("qTo").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") runSearch();
-      });
+document.getElementById('go').addEventListener('click', runSearch);
+document.getElementById('nearMe').addEventListener('click', findNearMe);
+document.getElementById('qTo').addEventListener('keydown', e=>{ if(e.key==='Enter') runSearch(); });
 
-      if (!window.isSecureContext || location.protocol === "file:") {
-        document.getElementById("secureNote").style.display = "block";
-      }
+if(!window.isSecureContext || location.protocol === 'file:'){
+  document.getElementById('secureNote').style.display = 'block';
+}
 
-      /* ===================== TABS ===================== */
-      document.querySelectorAll(".tab").forEach((t) => {
-        t.addEventListener("click", () => {
-          document
-            .querySelectorAll(".tab")
-            .forEach((x) => x.classList.remove("active"));
-          document
-            .querySelectorAll(".panel")
-            .forEach((x) => x.classList.remove("active"));
-          t.classList.add("active");
-          document
-            .getElementById("panel-" + t.dataset.tab)
-            .classList.add("active");
-        });
-      });
+/* ===================== TABS ===================== */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
 
-      /* ===================== KNOWN ROUTES (curated, sourced from field reports) ===================== */
-      const KNOWN = [
-        {
-          name: "Stavros tis Psokas — Cedar Valley loop",
-          area: "Paphos Forest",
-          coords: [34.94, 32.74],
-          note: 'Well-used forestry road through the Paphos Forest to the Cedar Valley mouflon enclosure. Earthen but graded and regularly maintained; the most forgiving "real" off-road route on the island for a stock vehicle in dry weather.',
-          tier: "moderate",
-        },
-        {
-          name: "Tzelefos Bridge track",
-          area: "Troodos foothills, near Statos-Agios Fotios",
-          coords: [34.865, 32.64],
-          note: "Starts at the well-known Venetian bridge. Reports describe it as well-graded and manageable in ordinary cars in dry conditions, not just 4x4s — a good stock-vehicle route.",
-          tier: "easy",
-        },
-        {
-          name: "Prodromos – Agios Nikolaos forestry descent",
-          area: "Troodos National Forest Park",
-          coords: [34.938, 32.821],
-          note: "A signed forestry track dropping steeply from near Prodromos toward Agios Nikolaos/Kakopetria through dense black pine, past old chrome mine workings. Graded but steep and winding — go slow, this is inside the National Forest Park.",
-          tier: "moderate",
-        },
-        {
-          name: "Persephone / Platania forestry track",
-          area: "Troodos, near Troodos village",
-          coords: [34.928, 32.865],
-          note: "Wide, well-maintained forestry road out of Troodos village toward the Platania picnic site. Field reports call it fine for any car in dry weather; the last stretch to the picnic site narrows and may require care or continuing on foot.",
-          tier: "easy",
-        },
-        {
-          name: "Vretsia abandoned village track",
-          area: "Paphos Forest, near an old open-pit mine",
-          coords: [34.882, 32.61],
-          note: "Leads to the abandoned village of Vretsia (deserted since 1974). Multiple trip reports describe the section past the old mine as rough and disorienting, with at least one report of a vehicle getting stuck in mud — treat as difficult, not a casual drive.",
-          tier: "difficult",
-        },
-        {
-          name: "Akamas — Baths of Aphrodite to Fontana Amoroza / Blue Lagoon",
-          area: "Akamas Peninsula",
-          coords: [35.043, 32.328],
-          note: "This forest road has been CLOSED to private vehicles since 2022 following repeated fatal accidents; only licensed tour operator vehicles carry visitors through. Movement of private vehicles across much of the wider Akamas National Forest Park / Natura 2000 area is also restricted by law, with narrow exceptions for landowners, residents and disabled visitors.",
-          tier: "restricted",
-          flag: "closed",
-        },
-        {
-          name: "Cape Greco coastal tracks",
-          area: "Cape Greco National Forest Park",
-          coords: [34.958, 34.06],
-          note: "Sandy/rocky coastal forestry tracks around the headland. Mostly easy, some soft sand sections near the sea — fine stock, watch tyre pressure in soft patches.",
-          tier: "moderate",
-        },
-      ];
+/* ===================== KNOWN ROUTES (curated, sourced from field reports) ===================== */
+const KNOWN = [
+  {
+    name:'Stavros tis Psokas — Cedar Valley loop',
+    area:'Paphos Forest',
+    coords:[34.940,32.740],
+    note:'Well-used forestry road through the Paphos Forest to the Cedar Valley mouflon enclosure. Earthen but graded and regularly maintained; the most forgiving "real" off-road route on the island for a stock vehicle in dry weather.',
+    tier:'moderate'
+  },
+  {
+    name:'Tzelefos Bridge track',
+    area:'Troodos foothills, near Statos-Agios Fotios',
+    coords:[34.865,32.640],
+    note:'Starts at the well-known Venetian bridge. Reports describe it as well-graded and manageable in ordinary cars in dry conditions, not just 4x4s — a good stock-vehicle route.',
+    tier:'easy'
+  },
+  {
+    name:'Prodromos – Agios Nikolaos forestry descent',
+    area:'Troodos National Forest Park',
+    coords:[34.938,32.821],
+    note:'A signed forestry track dropping steeply from near Prodromos toward Agios Nikolaos/Kakopetria through dense black pine, past old chrome mine workings. Graded but steep and winding — go slow, this is inside the National Forest Park.',
+    tier:'moderate'
+  },
+  {
+    name:'Persephone / Platania forestry track',
+    area:'Troodos, near Troodos village',
+    coords:[34.928,32.865],
+    note:'Wide, well-maintained forestry road out of Troodos village toward the Platania picnic site. Field reports call it fine for any car in dry weather; the last stretch to the picnic site narrows and may require care or continuing on foot.',
+    tier:'easy'
+  },
+  {
+    name:'Vretsia abandoned village track',
+    area:'Paphos Forest, near an old open-pit mine',
+    coords:[34.882,32.610],
+    note:'Leads to the abandoned village of Vretsia (deserted since 1974). Multiple trip reports describe the section past the old mine as rough and disorienting, with at least one report of a vehicle getting stuck in mud — treat as difficult, not a casual drive.',
+    tier:'difficult'
+  },
+  {
+    name:'Akamas — Baths of Aphrodite to Fontana Amoroza / Blue Lagoon',
+    area:'Akamas Peninsula',
+    coords:[35.043,32.328],
+    note:'This forest road has been CLOSED to private vehicles since 2022 following repeated fatal accidents; only licensed tour operator vehicles carry visitors through. Movement of private vehicles across much of the wider Akamas National Forest Park / Natura 2000 area is also restricted by law, with narrow exceptions for landowners, residents and disabled visitors.',
+    tier:'restricted',
+    flag:'closed'
+  },
+  {
+    name:'Cape Greco coastal tracks',
+    area:'Cape Greco National Forest Park',
+    coords:[34.958,34.060],
+    note:'Sandy/rocky coastal forestry tracks around the headland. Mostly easy, some soft sand sections near the sea — fine stock, watch tyre pressure in soft patches.',
+    tier:'moderate'
+  }
+];
 
-      const knownPanel = document.getElementById("panel-known");
-      knownPanel.innerHTML = `<p style="font-size:12px;color:var(--stone-dim);margin:0 0 12px;line-height:1.5;">
+const knownPanel = document.getElementById('panel-known');
+knownPanel.innerHTML = `<p style="font-size:12px;color:var(--stone-dim);margin:0 0 12px;line-height:1.5;">
   A short list of named routes that repeatedly show up in field reports (Wikiloc, AllTrails, local guides), not an exhaustive catalogue. Conditions change with weather and season — verify current state before you go.</p>`;
-      KNOWN.forEach((r) => {
-        const div = document.createElement("div");
-        div.className = "route-card";
-        const badgeClass =
-          r.tier === "restricted"
-            ? "b-restricted"
-            : r.tier === "difficult"
-              ? "b-difficult"
-              : r.tier === "moderate"
-                ? "b-moderate"
-                : "b-easy";
-        const badgeLabel =
-          r.tier === "restricted"
-            ? "Restricted"
-            : r.tier === "difficult"
-              ? "Difficult"
-              : r.tier === "moderate"
-                ? "Moderate"
-                : "Easy";
-        div.innerHTML = `<h3>${r.name}</h3><div class="route-meta">${r.area}</div>
+KNOWN.forEach(r=>{
+  const div = document.createElement('div');
+  div.className='route-card';
+  const badgeClass = r.tier==='restricted'?'b-restricted':r.tier==='difficult'?'b-difficult':r.tier==='moderate'?'b-moderate':'b-easy';
+  const badgeLabel = r.tier==='restricted'?'Restricted':r.tier==='difficult'?'Difficult':r.tier==='moderate'?'Moderate':'Easy';
+  div.innerHTML = `<h3>${r.name}</h3><div class="route-meta">${r.area}</div>
     <span class="badge ${badgeClass}">${badgeLabel}</span>
     <p style="margin-top:8px;">${r.note}</p>
-    ${r.flag === "closed" ? '<div class="flag flag-closed">⚠ Closed to private vehicles — do not attempt this one.</div>' : ""}
+    ${r.flag==='closed' ? '<div class="flag flag-closed">⚠ Closed to private vehicles — do not attempt this one.</div>' : ''}
     <a class="maplink" target="_blank" href="https://www.google.com/maps/search/?api=1&query=${r.coords[0]},${r.coords[1]}">Open location in Google Maps →</a>`;
-        div.style.cursor = "pointer";
-        div.addEventListener("click", (e) => {
-          if (e.target.tagName === "A") return;
-          map.setView(r.coords, 13);
-          document.querySelector('.tab[data-tab="trails"]').click();
-        });
-        knownPanel.appendChild(div);
-      });
+  div.style.cursor='pointer';
+  div.addEventListener('click', (e)=>{
+    if(e.target.tagName==='A') return;
+    map.setView(r.coords, 13);
+    document.querySelector('.tab[data-tab="trails"]').click();
+  });
+  knownPanel.appendChild(div);
+});
 
-      /* ===================== LEGAL TAB ===================== */
-      document.getElementById("panel-legal").innerHTML = `
+/* ===================== LEGAL TAB ===================== */
+document.getElementById('panel-legal').innerHTML = `
   <div class="infoblock">
     <h3>Staying on marked tracks</h3>
     <p>Cyprus's forest law puts state forest under the Forestry Department's control. Driving established forestry tracks is normally fine, but cutting new tracks, leaving the marked route, or damaging vegetation is not — and enforcement is real.</p>
@@ -1292,8 +670,8 @@
   </div>
 `;
 
-      /* ===================== VEHICLE TAB ===================== */
-      document.getElementById("panel-vehicle").innerHTML = `
+/* ===================== VEHICLE TAB ===================== */
+document.getElementById('panel-vehicle').innerHTML = `
   <div class="infoblock">
     <h3>Stock 2024 Land Cruiser 250 — what you're working with</h3>
     <table class="specs">
@@ -1329,6 +707,6 @@
     </ul>
   </div>
 `;
-    </script>
-  </body>
+</script>
+</body>
 </html>
