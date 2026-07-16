@@ -376,9 +376,39 @@ function sampleCoords(coords, maxPoints){
   return out;
 }
 
+function trailCardMarkup(item, selected=false){
+  return `<div class="tc-top"><div class="tc-name">${item.name}</div><div class="tc-dist">${item.dist.toFixed(1)} km</div></div>
+    <span class="badge ${item.c.cls}">${item.c.label}</span>
+    <div class="tc-note">${item.c.note}</div>`;
+}
+
 function selectTrail(item, line){
   document.querySelectorAll('.trail-card').forEach(c=>c.classList.remove('selected'));
-  if(item.card) item.card.classList.add('selected');
+
+  // Easy/moderate tracks already have a permanent card. Difficult/restricted
+  // tracks are map-only until selected, then their information appears here.
+  let selectedCard = item.card;
+  const oldMapSelection = document.getElementById('mapSelectedTrail');
+  if(oldMapSelection) oldMapSelection.remove();
+  if(!selectedCard){
+    selectedCard = document.createElement('div');
+    selectedCard.id = 'mapSelectedTrail';
+    selectedCard.className = 'trail-card selected';
+    selectedCard.innerHTML = trailCardMarkup(item, true);
+    selectedCard.addEventListener('click', ()=>{
+      map.fitBounds(line.getBounds(), {maxZoom:14});
+      line.openPopup();
+    });
+    listEl.prepend(selectedCard);
+  } else {
+    selectedCard.classList.add('selected');
+  }
+
+  // A map selection should reveal its details and controls immediately.
+  document.querySelector('.tab[data-tab="trails"]').click();
+  setSheetCollapsed(false);
+  selectedCard.scrollIntoView({behavior:'smooth', block:'nearest'});
+
   const bar = document.getElementById('actionBar');
   bar.style.display = 'block';
   document.getElementById('actionTitle').textContent = `Selected: ${item.name}`;
@@ -442,51 +472,82 @@ function renderTracks(elements, center){
   listEl.innerHTML = '';
   document.getElementById('actionBar').style.display = 'none';
   stopLiveTracking();
+
   if(!elements.length){
-    listEl.innerHTML = '<div class="empty">No mapped dirt roads or off-road tracks were found around this point. This means OpenStreetMap has no matching track or unpaved-road tags here; it does not prove that no dirt roads exist.</div>';
+    listEl.innerHTML = '<div class="empty">No mapped dirt roads or off-road tracks were found around this point. This means OpenStreetMap has no matching tags here; it does not prove that no dirt roads exist.</div>';
     return;
   }
+
+  // Unrated/gray ways are deliberately excluded from both the map and list.
   const items = elements.map(w=>{
     const c = classify(w.tags);
     const coords = (w.geometry||[]).map(g=>[g.lat,g.lon]);
     const mid = coords[Math.floor(coords.length/2)] || coords[0];
     const dist = mid ? haversine(center, mid) : 999;
-    const onRoute = false;
     const name = w.tags && (w.tags.name || w.tags.ref) ? (w.tags.name || w.tags.ref) : 'Unnamed track';
-    return {w, c, coords, dist, name, onRoute, t:1};
-  }).sort((a,b)=>a.dist-b.dist).slice(0,150);
+    return {w, c, coords, dist, name};
+  }).filter(item=>item.c.tier !== 'unrated' && item.coords.length >= 2)
+    .sort((a,b)=>a.dist-b.dist)
+    .slice(0,150);
+
+  if(!items.length){
+    listEl.innerHTML = '<div class="empty">Only unrated tracks were found here, so they were hidden. Try another nearby place.</div>';
+    setSheetCollapsed(false);
+    return;
+  }
+
+  const recommended = [];
 
   items.forEach(item=>{
-    if(item.coords.length<2) return;
-    const emphasize = true;
-    // white casing underneath for contrast against satellite imagery
-    L.polyline(item.coords, {color:'#ffffff', weight: emphasize?7:5, opacity: emphasize?0.55:0.3, interactive:false}).addTo(trackLayer);
-    const line = L.polyline(item.coords, {color: TIER_COLOR[item.c.tier], weight: emphasize?4:3, opacity: emphasize?0.95:0.55});
-    line.bindPopup(`<div class="popup-title">${item.name}</div>
-      <span class="badge ${item.c.cls}">${item.c.label}</span>${item.onRoute?' <span style="color:#8fc4ff;font-size:10px;">ON ROUTE</span>':''}
-      <div class="popup-note">${item.c.note}</div>
-      <div style="margin-top:6px;font-size:11px;color:var(--stone-dim);">Tap this trail's card below to navigate or track it live.</div>`);
-    line.addTo(trackLayer);
-    line.on('click', ()=>{ selectTrail(item, line); map.fitBounds(line.getBounds(), {maxZoom:14}); });
+    const isRecommended = item.c.tier === 'easy' || item.c.tier === 'moderate';
+    const casingWeight = isRecommended ? 7 : 6;
+    const lineWeight = isRecommended ? 4 : 3.5;
 
-    const card = document.createElement('div');
-    card.className = 'trail-card';
-    card.innerHTML = `<div class="tc-top"><div class="tc-name">${item.name}${item.onRoute?' <span style="color:#8fc4ff;font-size:10px;font-family:\'IBM Plex Mono\',monospace;">ON ROUTE</span>':''}</div><div class="tc-dist">${item.dist.toFixed(1)} km</div></div>
+    L.polyline(item.coords, {
+      color:'#ffffff', weight:casingWeight, opacity:isRecommended?0.55:0.42, interactive:false
+    }).addTo(trackLayer);
+
+    const line = L.polyline(item.coords, {
+      color:TIER_COLOR[item.c.tier], weight:lineWeight, opacity:isRecommended?0.95:0.88
+    });
+    line.bindPopup(`<div class="popup-title">${item.name}</div>
       <span class="badge ${item.c.cls}">${item.c.label}</span>
-      <div class="tc-note">${item.c.note}</div>`;
-    item.card = card;
-    card.addEventListener('click', ()=>{
+      <div class="popup-note">${item.c.note}</div>
+      <div style="margin-top:6px;font-size:11px;color:var(--stone-dim);">Tap the track on the map to show its details and navigation controls.</div>`);
+    line.addTo(trackLayer);
+    line.on('click', ()=>{
+      selectTrail(item, line);
       map.fitBounds(line.getBounds(), {maxZoom:14});
       line.openPopup();
-      selectTrail(item, line);
     });
-    listEl.appendChild(card);
+
+    if(isRecommended) recommended.push({item, line});
   });
 
-  if(!listEl.children.length){
-    listEl.innerHTML = '<div class="empty">Tracks found nearby but none had usable geometry. Try a different spot.</div>';
+  if(recommended.length){
+    const intro = document.createElement('div');
+    intro.className = 'empty';
+    intro.style.padding = '4px 4px 12px';
+    intro.innerHTML = 'Best options for driving are listed below. Difficult tracks remain visible on the map—tap one to inspect it.';
+    listEl.appendChild(intro);
+
+    recommended.forEach(({item, line})=>{
+      const card = document.createElement('div');
+      card.className = 'trail-card';
+      card.innerHTML = trailCardMarkup(item);
+      item.card = card;
+      card.addEventListener('click', ()=>{
+        map.fitBounds(line.getBounds(), {maxZoom:14});
+        line.openPopup();
+        selectTrail(item, line);
+      });
+      listEl.appendChild(card);
+    });
+  } else {
+    listEl.innerHTML = '<div class="empty">No easy or moderate tracks were found. Difficult tracks are still shown on the map—tap one to inspect its details.</div>';
   }
-  // Give the map maximum space after results load. The user can reopen the list.
+
+  // Keep the map maximized after loading. Selecting any map track reopens the panel.
   setSheetCollapsed(true);
 }
 
