@@ -61,7 +61,14 @@
   #sheet{
     flex:0 0 auto;background:var(--panel);border-top:1px solid var(--line);
     max-height:46vh;display:flex;flex-direction:column;z-index:20;
+    transition:max-height .22s ease, transform .22s ease;
   }
+  #sheet.collapsed{max-height:0;border-top:none;overflow:hidden;}
+  .sheet-handle{display:flex;align-items:center;justify-content:center;gap:8px;padding:7px 10px;background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto;}
+  .sheet-handle button{background:none;border:none;color:var(--stone-dim);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 10px;cursor:pointer;}
+  .sheet-grip{width:38px;height:4px;border-radius:4px;background:var(--line);display:inline-block;}
+  #showSheetBtn{display:none;position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:900;background:var(--panel);border:1px solid var(--copper-dim);color:var(--copper);padding:10px 15px;border-radius:22px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.35px;box-shadow:0 4px 16px rgba(0,0,0,.35);}
+  #showSheetBtn.visible{display:block;}
   .tabs{display:flex;border-bottom:1px solid var(--line);flex:0 0 auto;}
   .tab{
     flex:1;text-align:center;padding:11px 4px;font-family:'Oswald',sans-serif;font-size:12.5px;
@@ -147,9 +154,10 @@
     <div id="secureNote" style="display:none;font-size:10.5px;color:var(--ochre);margin-top:5px;line-height:1.35;">Near-me location needs this page to be opened from an HTTPS website, not only from an iPhone Files preview.</div>
   </header>
 
-  <div id="map"></div>
+  <div id="map"><button id="showSheetBtn">SHOW TRAILS</button></div>
 
   <div id="sheet">
+    <div class="sheet-handle"><span class="sheet-grip"></span><button id="hideSheetBtn" aria-label="Hide trails panel">MAXIMIZE MAP ▲</button></div>
     <div class="tabs">
       <button class="tab active" data-tab="trails">Trails</button>
       <button class="tab" data-tab="known">Known Routes</button>
@@ -478,6 +486,8 @@ function renderTracks(elements, center){
   if(!listEl.children.length){
     listEl.innerHTML = '<div class="empty">Tracks found nearby but none had usable geometry. Try a different spot.</div>';
   }
+  // Give the map maximum space after results load. The user can reopen the list.
+  setSheetCollapsed(true);
 }
 
 let fromMarker = null, refLine = null;
@@ -551,6 +561,18 @@ document.getElementById('qTo').addEventListener('keydown', e=>{ if(e.key==='Ente
 if(!window.isSecureContext || location.protocol === 'file:'){
   document.getElementById('secureNote').style.display = 'block';
 }
+
+
+/* ===================== COLLAPSIBLE TRAILS SHEET ===================== */
+const sheetEl = document.getElementById('sheet');
+const showSheetBtn = document.getElementById('showSheetBtn');
+function setSheetCollapsed(collapsed){
+  sheetEl.classList.toggle('collapsed', collapsed);
+  showSheetBtn.classList.toggle('visible', collapsed);
+  setTimeout(()=>map.invalidateSize(), 240);
+}
+document.getElementById('hideSheetBtn').addEventListener('click', ()=>setSheetCollapsed(true));
+showSheetBtn.addEventListener('click', ()=>setSheetCollapsed(false));
 
 /* ===================== TABS ===================== */
 document.querySelectorAll('.tab').forEach(t=>{
