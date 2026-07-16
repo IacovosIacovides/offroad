@@ -142,12 +142,14 @@
   <header>
     <div class="brand"><span class="mark">XOMA</span><span class="sub">Cyprus off-road · Republic-controlled area</span></div>
     <div class="searchrow" style="flex-direction:column;gap:6px;">
+      <input id="qFrom" class="searchinput" type="text" placeholder="Route from — leave blank for my location" />
       <div style="display:flex;gap:8px;">
-        <input id="qTo" class="searchinput" type="text" placeholder="Search a place — e.g. Fikardou village" style="flex:1;" />
+        <input id="qTo" class="searchinput" type="text" placeholder="Destination — e.g. Troodos" style="flex:1;" />
         <button id="go">SHOW TRAILS</button>
       </div>
       <div class="search-actions">
-        <button id="nearMe" class="secondary-btn" style="flex:1;padding:10px 12px;">OFF-ROAD TRAILS NEAR ME</button>
+        <button id="routeBtn" class="secondary-btn" style="flex:1;padding:10px 8px;">DIRT-PREFERRED ROUTE</button>
+        <button id="nearMe" class="secondary-btn" style="flex:1;padding:10px 8px;">TRAILS NEAR ME</button>
       </div>
     </div>
     <div id="status"></div>
@@ -200,6 +202,7 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 document.querySelector('.leaflet-tile-pane').style.filter = 'brightness(0.72) saturate(0.85)';
 
 let trackLayer = L.layerGroup().addTo(map);
+let routeLayer = L.layerGroup().addTo(map);
 let destMarker = null;
 let destLatLng = null;
 
@@ -615,8 +618,45 @@ async function findNearMe(){
   }, {enableHighAccuracy:true, timeout:12000, maximumAge:30000});
 }
 
+
+/* ===================== DIRT-PREFERRED ROUTING ===================== */
+async function buildDirtPreferredRoute(){
+  const fromQ=document.getElementById('qFrom').value.trim();
+  const toQ=document.getElementById('qTo').value.trim();
+  if(!toQ){ statusEl.textContent='Type a destination first.'; return; }
+  statusEl.innerHTML='<span class="spin"></span>Locating route points…';
+  try{
+    let from,labelFrom;
+    if(fromQ){ const p=await geocode(fromQ); from={lat:+p.lat,lon:+p.lon}; labelFrom=p.display_name.split(',').slice(0,2).join(','); }
+    else{
+      if(!myLocation){
+        const pos=await new Promise((resolve,reject)=>navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:30000}));
+        myLocation=[pos.coords.latitude,pos.coords.longitude];
+      }
+      from={lat:myLocation[0],lon:myLocation[1]}; labelFrom='My location';
+    }
+    const pTo=await geocode(toQ),to={lat:+pTo.lat,lon:+pTo.lon},labelTo=pTo.display_name.split(',').slice(0,2).join(',');
+    statusEl.innerHTML='<span class="spin"></span>Building a connected route that prefers dirt roads…';
+    const r=await fetch('/.netlify/functions/route',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({from,to,preference:'strong'})});
+    const data=await r.json(); if(!r.ok) throw new Error(data.error||'Route failed');
+    routeLayer.clearLayers();
+    const latlngs=data.coords;
+    L.polyline(latlngs,{color:'#ffffff',weight:9,opacity:0.7,interactive:false}).addTo(routeLayer);
+    const line=L.polyline(latlngs,{color:'#ff8a3d',weight:5,opacity:0.98}).addTo(routeLayer);
+    L.marker([from.lat,from.lon]).addTo(routeLayer).bindPopup(labelFrom);
+    L.marker([to.lat,to.lon]).addTo(routeLayer).bindPopup(labelTo);
+    map.fitBounds(line.getBounds(),{padding:[22,22]});
+    const st=data.stats;
+    listEl.innerHTML=`<div class="route-card"><h3>${labelFrom} → ${labelTo}</h3><div class="route-meta">DIRT-PREFERRED · EXPERIMENTAL</div><p><strong>${st.totalKm.toFixed(1)} km</strong> total · about <strong>${st.dirtPercent}% unpaved/track</strong></p><p>${st.dirtKm.toFixed(1)} km easier dirt/gravel · ${st.difficultKm.toFixed(1)} km rough dirt · ${st.pavedKm.toFixed(1)} km paved connectors</p><div class="flag flag-caution">This route uses OpenStreetMap surface/access tags. It cannot see locked gates, fresh closures, washouts or current weather. Inspect difficult sections and obey local signs.</div></div>`;
+    document.querySelector('.tab[data-tab="trails"]').click();
+    setSheetCollapsed(false);
+    statusEl.textContent=`Route ready — ${st.totalKm.toFixed(1)} km, approximately ${st.dirtPercent}% dirt/track.`;
+  }catch(e){ console.error(e); statusEl.textContent='Could not build the mixed-surface route: '+e.message; }
+}
+
 document.getElementById('go').addEventListener('click', runSearch);
 document.getElementById('nearMe').addEventListener('click', findNearMe);
+document.getElementById('routeBtn').addEventListener('click', buildDirtPreferredRoute);
 document.getElementById('qTo').addEventListener('keydown', e=>{ if(e.key==='Enter') runSearch(); });
 
 if(!window.isSecureContext || location.protocol === 'file:'){
